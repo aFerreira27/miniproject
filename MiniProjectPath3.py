@@ -24,8 +24,8 @@ def dataset_searcher(number_list,images,labels):
   #insert code that when given a list of integers, will find the labels and images
   #and put them all in numpy arrary (at the same time, as training and testing data)
 
-  images_nparray = np.empty((0, *images.shape[1:]), dtype=images.dtype)  # Initialize as empty numpy array
-  labels_nparray = np.empty(0, dtype=labels.dtype)
+  images_nparray = np.empty((0, *images.shape[1:]))
+  labels_nparray = np.empty(0)
 
   for i, number in enumerate(labels):
         if number in number_list:
@@ -38,7 +38,7 @@ def print_numbers(images,labels):
   #insert code that when given images and labels (of numpy arrays)
   #the code will plot the images and their labels in the title. 
   for i, image in enumerate(images):
-        plt.title(f"Image #{i+1}, class {labels[i]}")
+        plt.title(f"Image #{i+1}, class {int(labels[i])}")
         plt.imshow(image, cmap='gray')
         plt.axis('off')  # Turn off axis
         plt.show()
@@ -124,11 +124,28 @@ poison = rng.normal(scale=noise_scale, size=X_train.shape)
 
 X_train_poison = X_train + poison
 
-
 #Part 9-11
 #Determine the 3 models performance but with the poisoned training data X_train_poison and y_train instead of X_train and y_train
 
+X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
+model_1.fit(X_train_poison_reshaped, y_train)
+model1_results_poison = model_1.predict(X_test.reshape(len(X_test), -1))
+
+Model1_poison_Overall_Accuracy = OverallAccuracy(model1_results_poison, y_test)
+print("The overall results of the Gaussian model (Poisened Test Data) is " + str(Model1_poison_Overall_Accuracy))
+
+model_2.fit(X_train_poison_reshaped, y_train)
+model2_results_poison = model_2.predict(X_test.reshape(len(X_test), -1))
+
+Model2_poison_Overall_Accuracy = OverallAccuracy(model2_results_poison, y_test)
+print("The overall results of the K Nearest Neighbors model (Test Data) is " + str(Model2_poison_Overall_Accuracy))
+
+model_3.fit(X_train_poison_reshaped, y_train)
+model3_results_poison = model_3.predict(X_test.reshape(len(X_test), -1))
+
+Model3_poison_Overall_Accuracy = OverallAccuracy(model3_results_poison, y_test)
+print("The overall results of the MLP Classifier model (Test Data) is " + str(Model3_poison_Overall_Accuracy))
 
 #Part 12-13
 # Denoise the poisoned training data, X_train_poison. 

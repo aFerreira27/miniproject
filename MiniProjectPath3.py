@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, svm, metrics
+from sklearn.decomposition import KernelPCA
 from sklearn.model_selection import train_test_split
 #import models
 from sklearn.naive_bayes import GaussianNB
@@ -103,7 +104,7 @@ print("The overall results of the K Nearest Neighbors model (ALL NUMBERS) is " +
 
 
 #Repeat for the MLP Classifier
-model_3 = MLPClassifier(random_state=0)
+model_3 = MLPClassifier(random_state=0, max_iter=400)
 
 model_3.fit(X_train_reshaped, y_train)
 model3_results = model_3.predict(X_test.reshape(len(X_test), -1))
@@ -139,13 +140,13 @@ model_2.fit(X_train_poison_reshaped, y_train)
 model2_results_poison = model_2.predict(X_test.reshape(len(X_test), -1))
 
 Model2_poison_Overall_Accuracy = OverallAccuracy(model2_results_poison, y_test)
-print("The overall results of the K Nearest Neighbors model (Test Data) is " + str(Model2_poison_Overall_Accuracy))
+print("The overall results of the K Nearest Neighbors model (Poisened Test Data) is " + str(Model2_poison_Overall_Accuracy))
 
 model_3.fit(X_train_poison_reshaped, y_train)
 model3_results_poison = model_3.predict(X_test.reshape(len(X_test), -1))
 
 Model3_poison_Overall_Accuracy = OverallAccuracy(model3_results_poison, y_test)
-print("The overall results of the MLP Classifier model (Test Data) is " + str(Model3_poison_Overall_Accuracy))
+print("The overall results of the MLP Classifier model (Poisened Test Data) is " + str(Model3_poison_Overall_Accuracy))
 
 #Part 12-13
 # Denoise the poisoned training data, X_train_poison. 
@@ -153,10 +154,38 @@ print("The overall results of the MLP Classifier model (Test Data) is " + str(Mo
 # When fitting the KernelPCA method, the input image of size 8x8 should be reshaped into 1 dimension
 # So instead of using the X_train_poison data of shape 718 (718 images) by 8 by 8, the new shape would be 718 by 64
 
-#X_train_denoised = # fill in the code here
+X_train_poison_reshaped = X_train_poison.reshape((X_train_poison.shape[0], -1))
 
+kernel_pca = KernelPCA(
+    n_components=1000,
+    kernel="rbf",
+    gamma=1e-3,
+    fit_inverse_transform=True,
+    alpha=5e-3,
+    random_state=42,
+)
+
+kernel_pca.fit(X_train_poison_reshaped)
+
+X_reconstructed_kernel_pca = kernel_pca.inverse_transform(
+    kernel_pca.transform(X_train_poison_reshaped)
+)
 
 #Part 14-15
 #Determine the 3 models performance but with the denoised training data, X_train_denoised and y_train instead of X_train_poison and y_train
 #Explain how the model performances changed after the denoising process.
 
+model_1.fit(X_reconstructed_kernel_pca, y_train)
+model1_results_denoised = model_1.predict(X_test.reshape(len(X_test), -1))
+Model1_denoised_Overall_Accuracy = OverallAccuracy(model1_results_denoised, y_test)
+print("The overall results of the Gaussian model (Denoised Test Data) is " + str(Model1_denoised_Overall_Accuracy))
+
+model_2.fit(X_reconstructed_kernel_pca, y_train)
+model2_results_denoised = model_2.predict(X_test.reshape(len(X_test), -1))
+Model2_denoised_Overall_Accuracy = OverallAccuracy(model2_results_denoised, y_test)
+print("The overall results of the K Nearest Neighbors model (Denoised Test Data) is " + str(Model2_denoised_Overall_Accuracy))
+
+model_3.fit(X_reconstructed_kernel_pca, y_train)
+model3_results_denoised = model_3.predict(X_test.reshape(len(X_test), -1))
+Model3_denoised_Overall_Accuracy = OverallAccuracy(model3_results_denoised, y_test)
+print("The overall results of the MLP Classifier model (Denoised Test Data) is " + str(Model3_denoised_Overall_Accuracy))

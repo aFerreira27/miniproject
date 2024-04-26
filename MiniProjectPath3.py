@@ -41,14 +41,14 @@ def print_numbers(images,labels):
   for i, image in enumerate(images):
         plt.title(f"Image #{i+1}, class {int(labels[i])}")
         plt.imshow(image, cmap='gray')
-        plt.axis('off')  # Turn off axis
+        plt.axis('off')
         plt.show()
 
 class_numbers = [2,0,8,7,5]
 #Part 1
 class_number_images , class_number_labels = dataset_searcher(class_numbers, images, labels)
 #Part 2
-#print_numbers(class_number_images , class_number_labels)
+print_numbers(class_number_images , class_number_labels)
 
 
 model_1 = GaussianNB()
